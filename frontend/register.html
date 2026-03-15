@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LivePulse — Create Account</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="login-body">
+
+  <div class="login-container">
+    <h1>LivePulse</h1>
+    <p class="tagline">Join the real-time feed</p>
+
+    <div class="login-card">
+      <h2>Create Account</h2>
+
+      <input id="username" type="text" placeholder="Choose a Username" autocomplete="username" />
+      <input id="password" type="password" placeholder="Create Password" autocomplete="new-password" />
+
+      <div class="password-rules">
+        <span id="rule-length">✗ Minimum 12 characters</span><br/>
+        <span id="rule-upper">✗ Uppercase letter</span><br/>
+        <span id="rule-lower">✗ Lowercase letter</span><br/>
+        <span id="rule-number">✗ Number</span><br/>
+        <span id="rule-special">✗ Special symbol (@$!%*?&)</span>
+      </div>
+
+      <select id="interest">
+        <option value="all">All Updates</option>
+        <option value="technology">Technology</option>
+        <option value="sports">Sports</option>
+        <option value="education">Education</option>
+        <option value="music">Music</option>
+      </select>
+
+      <p id="registerError" class="error-text"></p>
+
+      <button id="registerBtn" onclick="register()">Create Account</button>
+
+      <p class="small-text">
+        Already have an account? <a href="login.html">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("password").addEventListener("input", function () {
+      const val = this.value;
+      check("rule-length",  val.length >= 12);
+      check("rule-upper",   /[A-Z]/.test(val));
+      check("rule-lower",   /[a-z]/.test(val));
+      check("rule-number",  /\d/.test(val));
+      check("rule-special", /[@$!%*?&]/.test(val));
+    });
+
+    function check(id, passed) {
+      const el = document.getElementById(id);
+      el.style.color = passed ? "#4ade80" : "#f87171";
+      el.textContent = (passed ? "✓ " : "✗ ") + el.textContent.slice(2);
+    }
+
+    async function register() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const interest = document.getElementById("interest").value;
+      const errorEl  = document.getElementById("registerError");
+      const btn      = document.getElementById("registerBtn");
+
+      errorEl.textContent = "";
+
+      if (!username || !password) {
+        errorEl.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      btn.textContent = "Creating account...";
+      btn.disabled    = true;
+
+      try {
+        const response = await fetch("http://localhost:5000/register", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ username, password, interest }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert(data.message);
+          window.location.href = "login.html";
+        } else {
+          errorEl.textContent = data.message || "Registration failed.";
+        }
+      } catch (err) {
+        errorEl.textContent = "Cannot connect to server. Make sure the backend is running.";
+      } finally {
+        btn.textContent = "Create Account";
+        btn.disabled    = false;
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") register();
+    });
+  </script>
+
+</body>
+</html>

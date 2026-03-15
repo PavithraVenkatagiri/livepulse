@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LivePulse</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <h2>LivePulse</h2>
+    <input type="text" id="searchBox" placeholder="Search updates..." oninput="searchFeed()" />
+    <div class="topbar-right">
+      <span id="welcomeUser" class="welcome-text"></span>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <aside class="sidebar">
+      <h3>Categories</h3>
+      <button onclick="getUpdates('all')"        id="btn-all">All</button>
+      <button onclick="getUpdates('technology')" id="btn-technology">Technology</button>
+      <button onclick="getUpdates('sports')"     id="btn-sports">Sports</button>
+      <button onclick="getUpdates('education')"  id="btn-education">Education</button>
+      <button onclick="getUpdates('music')"      id="btn-music">Music</button>
+    </aside>
+
+    <main class="feed">
+      <div class="feed-header">
+        <h2 id="feedTitle">Live Feed</h2>
+        <span id="liveIndicator" class="live-dot">● LIVE</span>
+      </div>
+      <div id="loadingMsg" class="loading-msg">Loading updates...</div>
+      <div id="feedContainer"></div>
+    </main>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
