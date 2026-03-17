@@ -23,7 +23,7 @@ let   allArticles = []; // store current articles for search
 //  Socket.io — Real-time Updates
 // ──────────────────────────────────────────────
 
-const socket = io("http://localhost:5000");
+const socket = io("https://livepulse-0450.onrender.com");
 
 socket.on("connect", () => {
   const interest = localStorage.getItem("interest") || "all";
@@ -64,7 +64,7 @@ async function getUpdates(topic) {
   socket.emit("subscribe", topic);
 
   try {
-    const response = await fetch(`http://localhost:5000/updates/${topic}`, {
+    const response = await fetch(`https://livepulse-0450.onrender.com/updates/${topic}`, {
       headers: { Authorization: "Bearer " + token },
     });
 
