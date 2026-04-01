@@ -1,109 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LivePulse — Create Account</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
-<body class="login-body">
+<body class="auth-body">
+<div id="toast" class="toast"></div>
 
-  <div class="login-container">
-    <h1>LivePulse</h1>
-    <p class="tagline">Join the real-time feed</p>
-
-    <div class="login-card">
-      <h2>Create Account</h2>
-
-      <input id="username" type="text" placeholder="Choose a Username" autocomplete="username" />
-      <input id="password" type="password" placeholder="Create Password" autocomplete="new-password" />
-
-      <div class="password-rules">
-        <span id="rule-length">✗ Minimum 12 characters</span><br/>
-        <span id="rule-upper">✗ Uppercase letter</span><br/>
-        <span id="rule-lower">✗ Lowercase letter</span><br/>
-        <span id="rule-number">✗ Number</span><br/>
-        <span id="rule-special">✗ Special symbol (@$!%*?&)</span>
-      </div>
-
-      <select id="interest">
-        <option value="all">All Updates</option>
-        <option value="technology">Technology</option>
-        <option value="sports">Sports</option>
-        <option value="education">Education</option>
-        <option value="music">Music</option>
-      </select>
-
-      <p id="registerError" class="error-text"></p>
-
-      <button id="registerBtn" onclick="register()">Create Account</button>
-
-      <p class="small-text">
-        Already have an account? <a href="login.html">Login</a>
-      </p>
-    </div>
+<div class="auth-left">
+  <div class="auth-brand">LivePulse</div>
+  <p class="auth-tagline">Join thousands of readers getting real-time news updates.</p>
+  <div class="auth-features">
+    <div class="auth-feature"><div class="auth-feature-icon">🆓</div>100% free — no credit card needed</div>
+    <div class="auth-feature"><div class="auth-feature-icon">🌍</div>News from 100+ global sources</div>
+    <div class="auth-feature"><div class="auth-feature-icon">💼</div>Job updates across 10 sectors</div>
+    <div class="auth-feature"><div class="auth-feature-icon">📱</div>Works on any device</div>
   </div>
+</div>
 
-  <script>
-    document.getElementById("password").addEventListener("input", function () {
-      const val = this.value;
-      check("rule-length",  val.length >= 12);
-      check("rule-upper",   /[A-Z]/.test(val));
-      check("rule-lower",   /[a-z]/.test(val));
-      check("rule-number",  /\d/.test(val));
-      check("rule-special", /[@$!%*?&]/.test(val));
-    });
+<div class="auth-right">
+  <div class="auth-card">
+    <h2>Create account</h2>
+    <p class="auth-sub">Start reading real-time news for free</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input id="username" type="text" placeholder="Choose a username" autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input id="password" type="password" placeholder="Create a strong password" autocomplete="new-password"/>
+    </div>
+    <div class="password-rules">
+      <div id="rule-length"  style="color:var(--red)">✗ Minimum 12 characters</div>
+      <div id="rule-upper"   style="color:var(--red)">✗ One uppercase letter</div>
+      <div id="rule-lower"   style="color:var(--red)">✗ One lowercase letter</div>
+      <div id="rule-number"  style="color:var(--red)">✗ One number</div>
+      <div id="rule-special" style="color:var(--red)">✗ One special character (@$!%*?&)</div>
+    </div>
+    <div class="form-group">
+      <label>Default interest</label>
+      <select id="interest">
+        <option value="all">All News</option>
+        <option value="technology">Technology & AI</option>
+        <option value="sports">Sports</option>
+        <option value="politics">Politics</option>
+        <option value="business">Business & Finance</option>
+        <option value="health">Health & Science</option>
+        <option value="world">World News</option>
+        <option value="music">Music</option>
+        <option value="entertainment">Movies & TV</option>
+        <option value="education">Education</option>
+        <option value="jobs-it">IT Jobs</option>
+        <option value="jobs-data">Data Science Jobs</option>
+      </select>
+    </div>
+    <p id="registerError" class="error-text"></p>
+    <button id="registerBtn" class="auth-btn" onclick="register()">Create Account</button>
+    <p class="auth-link">Already have an account? <a href="login.html">Sign in</a></p>
+    <p class="auth-link" style="margin-top:8px"><a href="home.html">← Back to home</a></p>
+  </div>
+</div>
 
-    function check(id, passed) {
-      const el = document.getElementById(id);
-      el.style.color = passed ? "#4ade80" : "#f87171";
-      el.textContent = (passed ? "✓ " : "✗ ") + el.textContent.slice(2);
-    }
+<script>
+  document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") || "dark");
 
-    async function register() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value;
-      const interest = document.getElementById("interest").value;
-      const errorEl  = document.getElementById("registerError");
-      const btn      = document.getElementById("registerBtn");
+  const API = window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : window.location.origin;
 
-      errorEl.textContent = "";
+  function showToast(msg, type="success") {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.className = `toast toast-${type} show`;
+    setTimeout(() => t.className = "toast", 3000);
+  }
 
-      if (!username || !password) {
-        errorEl.textContent = "Please fill in all fields.";
-        return;
+  document.getElementById("password").addEventListener("input", function() {
+    const v = this.value;
+    setRule("rule-length",  v.length >= 12);
+    setRule("rule-upper",   /[A-Z]/.test(v));
+    setRule("rule-lower",   /[a-z]/.test(v));
+    setRule("rule-number",  /\d/.test(v));
+    setRule("rule-special", /[@$!%*?&]/.test(v));
+  });
+
+  function setRule(id, pass) {
+    const el = document.getElementById(id);
+    el.style.color = pass ? "var(--green)" : "var(--red)";
+    el.textContent = (pass ? "✓ " : "✗ ") + el.textContent.slice(2);
+  }
+
+  async function register() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+    const interest = document.getElementById("interest").value;
+    const errorEl  = document.getElementById("registerError");
+    const btn      = document.getElementById("registerBtn");
+    errorEl.textContent = "";
+    if (!username || !password) { errorEl.textContent = "Please fill in all fields."; return; }
+    btn.textContent = "Creating account..."; btn.disabled = true;
+    try {
+      const res  = await fetch(`${API}/register`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, interest })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message, "success");
+        setTimeout(() => window.location.href = "login.html", 1500);
+      } else {
+        errorEl.textContent = data.message || "Registration failed.";
       }
+    } catch { errorEl.textContent = "Cannot connect to server."; }
+    finally { btn.textContent = "Create Account"; btn.disabled = false; }
+  }
 
-      btn.textContent = "Creating account...";
-      btn.disabled    = true;
-
-      try {
-        const response = await fetch("https://livepulse-0450.onrender.com/register", {
-          method:  "POST",
-          headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ username, password, interest }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          alert(data.message);
-          window.location.href = "login.html";
-        } else {
-          errorEl.textContent = data.message || "Registration failed.";
-        }
-      } catch (err) {
-        errorEl.textContent = "Cannot connect to server. Make sure the backend is running.";
-      } finally {
-        btn.textContent = "Create Account";
-        btn.disabled    = false;
-      }
-    }
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") register();
-    });
-  </script>
-
+  document.addEventListener("keydown", e => { if (e.key === "Enter") register(); });
+</script>
 </body>
 </html>

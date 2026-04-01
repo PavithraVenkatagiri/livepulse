@@ -1,46 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LivePulse</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <title>LivePulse — News Feed</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
+<div id="toast" class="toast"></div>
 
-  <header class="topbar">
-    <h2>LivePulse</h2>
-    <input type="text" id="searchBox" placeholder="Search updates..." oninput="searchFeed()" />
-    <div class="topbar-right">
-      <span id="welcomeUser" class="welcome-text"></span>
-      <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-  </header>
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
+    <span class="logo">LivePulse</span>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchBox" placeholder="Search articles... (Press /)" oninput="searchFeed()"/>
+  </div>
+  <div class="topbar-right">
+    <button class="icon-btn" onclick="toggleTheme()"            id="themeBtn" title="Toggle theme">🌙</button>
+    <button class="icon-btn" onclick="requestNotifPermission()"               title="Notifications">🔔</button>
+    <a      class="icon-btn" href="profile.html"                              title="Profile">👤</a>
+    <span class="welcome-chip" id="welcomeUser"></span>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</header>
 
-  <div class="container">
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">Feed</div>
+    <button class="sidebar-btn" onclick="getUpdates('all')"          id="btn-all">         <span class="si">🌐</span> All News</button>
+    <div class="sidebar-section">Top Categories</div>
+    <button class="sidebar-btn" onclick="getUpdates('technology')"   id="btn-technology">  <span class="si">💻</span> Technology & AI</button>
+    <button class="sidebar-btn" onclick="getUpdates('sports')"       id="btn-sports">      <span class="si">⚽</span> Sports</button>
+    <button class="sidebar-btn" onclick="getUpdates('politics')"     id="btn-politics">    <span class="si">🏛️</span> Politics</button>
+    <button class="sidebar-btn" onclick="getUpdates('business')"     id="btn-business">    <span class="si">💼</span> Business</button>
+    <button class="sidebar-btn" onclick="getUpdates('health')"       id="btn-health">      <span class="si">🏥</span> Health & Science</button>
+    <button class="sidebar-btn" onclick="getUpdates('world')"        id="btn-world">       <span class="si">🌍</span> World News</button>
+    <div class="sidebar-section">Entertainment</div>
+    <button class="sidebar-btn" onclick="getUpdates('music')"          id="btn-music">        <span class="si">🎵</span> Music</button>
+    <button class="sidebar-btn" onclick="getUpdates('entertainment')"  id="btn-entertainment"><span class="si">🎬</span> Movies & TV</button>
+    <button class="sidebar-btn" onclick="getUpdates('gaming')"         id="btn-gaming">       <span class="si">🎮</span> Gaming</button>
+    <div class="sidebar-section">More Topics</div>
+    <button class="sidebar-btn" onclick="getUpdates('space')"        id="btn-space">       <span class="si">🚀</span> Space & Innovation</button>
+    <button class="sidebar-btn" onclick="getUpdates('environment')"  id="btn-environment"> <span class="si">🌱</span> Environment</button>
+    <button class="sidebar-btn" onclick="getUpdates('law')"          id="btn-law">         <span class="si">⚖️</span> Law & Justice</button>
+    <button class="sidebar-btn" onclick="getUpdates('education')"    id="btn-education">   <span class="si">📚</span> Education</button>
+    <div class="sidebar-section">Jobs by Sector</div>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-it')"           id="btn-jobs-it">          <span class="si">🖥️</span> IT & Software</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-data')"         id="btn-jobs-data">        <span class="si">📊</span> Data Science & AI</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-health')"       id="btn-jobs-health">      <span class="si">🏥</span> Healthcare</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-finance')"      id="btn-jobs-finance">     <span class="si">💰</span> Finance & Banking</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-engineering')"  id="btn-jobs-engineering"> <span class="si">⚙️</span> Engineering</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-design')"       id="btn-jobs-design">      <span class="si">🎨</span> Design & Creative</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-marketing')"    id="btn-jobs-marketing">   <span class="si">📢</span> Marketing & Sales</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-education')"    id="btn-jobs-education">   <span class="si">🎓</span> Education & Teaching</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-legal')"        id="btn-jobs-legal">       <span class="si">⚖️</span> Legal</button>
+    <button class="sidebar-btn" onclick="getUpdates('jobs-construction')" id="btn-jobs-construction"><span class="si">🏗️</span> Construction</button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Library</div>
+    <button class="sidebar-btn" onclick="showBookmarks()" id="btn-bookmarks"><span class="si">🔖</span> Bookmarks</button>
+  </aside>
 
-    <aside class="sidebar">
-      <h3>Categories</h3>
-      <button onclick="getUpdates('all')"        id="btn-all">All</button>
-      <button onclick="getUpdates('technology')" id="btn-technology">Technology</button>
-      <button onclick="getUpdates('sports')"     id="btn-sports">Sports</button>
-      <button onclick="getUpdates('education')"  id="btn-education">Education</button>
-      <button onclick="getUpdates('music')"      id="btn-music">Music</button>
-    </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
+  <div class="main-content">
     <main class="feed">
       <div class="feed-header">
-        <h2 id="feedTitle">Live Feed</h2>
-        <span id="liveIndicator" class="live-dot">● LIVE</span>
+        <h2 class="feed-title" id="feedTitle">All News</h2>
+        <div class="live-badge" id="liveBadge"><div class="live-dot"></div> LIVE</div>
       </div>
-      <div id="loadingMsg" class="loading-msg">Loading updates...</div>
       <div id="feedContainer"></div>
+      <button id="loadMoreBtn" class="load-more-btn" onclick="loadMore()" style="display:none">
+        Load More Articles
+      </button>
     </main>
-
+    <aside class="trending-panel" id="trendingPanel">
+      <div class="trending-title">🔥 Trending Now</div>
+    </aside>
   </div>
+</div>
 
-  <script src="script.js"></script>
-
+<script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LivePulse — Profile</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<div class="profile-wrap">
+  <a href="index.html" class="back-link">← Back to Feed</a>
+
+  <div class="profile-header-card">
+    <div class="avatar" id="avatarEl">?</div>
+    <div class="profile-name"   id="profileName">Loading...</div>
+    <div class="profile-joined" id="profileJoined"></div>
+    <div class="profile-stats">
+      <div class="stat-item"><div class="stat-val" id="bookmarkCount">0</div><div class="stat-lbl">Bookmarks</div></div>
+      <div class="stat-item"><div class="stat-val" id="readCount">0</div><div class="stat-lbl">Articles Read</div></div>
+      <div class="stat-item"><div class="stat-val" id="memberDays">0</div><div class="stat-lbl">Days Active</div></div>
+    </div>
+  </div>
+
+  <div class="settings-card">
+    <h3>📊 Reading Stats by Category</h3>
+    <div id="categoryStats"><p style="font-size:13px;color:var(--muted)">Start reading articles to see your stats here!</p></div>
+  </div>
+
+  <div class="settings-card">
+    <h3>⚙️ Preferences</h3>
+    <div class="form-group">
+      <label>Default Category</label>
+      <select id="interest">
+        <option value="all">All News</option>
+        <option value="technology">Technology & AI</option>
+        <option value="sports">Sports</option>
+        <option value="politics">Politics</option>
+        <option value="business">Business & Finance</option>
+        <option value="health">Health & Science</option>
+        <option value="world">World News</option>
+        <option value="music">Music</option>
+        <option value="entertainment">Movies & TV</option>
+        <option value="gaming">Gaming</option>
+        <option value="space">Space & Innovation</option>
+        <option value="environment">Environment</option>
+        <option value="law">Law & Justice</option>
+        <option value="education">Education</option>
+        <option value="jobs-it">IT & Software Jobs</option>
+        <option value="jobs-data">Data Science Jobs</option>
+        <option value="jobs-health">Healthcare Jobs</option>
+        <option value="jobs-finance">Finance Jobs</option>
+        <option value="jobs-engineering">Engineering Jobs</option>
+        <option value="jobs-design">Design Jobs</option>
+        <option value="jobs-marketing">Marketing Jobs</option>
+        <option value="jobs-education">Education Jobs</option>
+        <option value="jobs-legal">Legal Jobs</option>
+        <option value="jobs-construction">Construction Jobs</option>
+      </select>
+    </div>
+    <button class="save-btn" id="prefBtn" onclick="savePreferences()">Save Preferences</button>
+  </div>
+
+  <div class="settings-card">
+    <h3>🔒 Change Password</h3>
+    <div class="form-group">
+      <label>New Password</label>
+      <input id="newPassword" type="password" placeholder="Leave blank to keep current"/>
+    </div>
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input id="confirmPassword" type="password" placeholder="Repeat new password"/>
+    </div>
+    <p id="passMsg"></p>
+    <button class="save-btn" id="passBtn" onclick="savePassword()">Update Password</button>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem("token");
+  if (!token) window.location.href = "login.html";
+  document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") || "dark");
+
+  const API = window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : window.location.origin;
+
+  function showToast(msg, type="success") {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.className = `toast toast-${type} show`;
+    setTimeout(() => t.className = "toast", 3000);
+  }
+
+  async function loadProfile() {
+    try {
+      const res  = await fetch(`${API}/profile`, { headers: { Authorization:"Bearer "+token } });
+      if (!res.ok) { window.location.href = "login.html"; return; }
+      const user = await res.json();
+
+      document.getElementById("avatarEl").textContent     = user.username.charAt(0).toUpperCase();
+      document.getElementById("profileName").textContent   = user.username;
+      document.getElementById("interest").value           = user.interest || "all";
+      document.getElementById("bookmarkCount").textContent = user.bookmarks?.length || 0;
+      document.getElementById("readCount").textContent     = user.readCount || 0;
+
+      const joined = new Date(user.createdAt);
+      const days   = Math.max(1, Math.floor((Date.now() - joined) / (1000*60*60*24)));
+      document.getElementById("profileJoined").textContent =
+        "Member since " + joined.toLocaleDateString("en-US", { year:"numeric", month:"long" });
+      document.getElementById("memberDays").textContent = days;
+
+      if (user.categoryStats && Object.keys(user.categoryStats).length > 0) {
+        const stats   = Object.entries(user.categoryStats).sort((a,b) => b[1]-a[1]).slice(0,6);
+        const max     = stats[0][1];
+        document.getElementById("categoryStats").innerHTML = stats.map(([cat, count]) => `
+          <div class="category-bar">
+            <div class="bar-label">
+              <span>${cat.replace("jobs-","").replace(/-/g," ")}</span>
+              <span>${count} reads</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${Math.round((count/max)*100)}%"></div>
+            </div>
+          </div>`).join("");
+      }
+    } catch { showToast("Error loading profile.", "error"); }
+  }
+
+  async function savePreferences() {
+    const interest = document.getElementById("interest").value;
+    const btn = document.getElementById("prefBtn");
+    btn.textContent = "Saving..."; btn.disabled = true;
+    try {
+      const res  = await fetch(`${API}/profile`, {
+        method:"PUT", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token},
+        body: JSON.stringify({ interest })
+      });
+      const data = await res.json();
+      if (res.ok) { localStorage.setItem("interest", interest); showToast("Preferences saved!", "success"); }
+      else showToast(data.message || "Failed.", "error");
+    } catch { showToast("Server error.", "error"); }
+    finally { btn.textContent = "Save Preferences"; btn.disabled = false; }
+  }
+
+  async function savePassword() {
+    const newPassword     = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    const msgEl           = document.getElementById("passMsg");
+    const btn             = document.getElementById("passBtn");
+    msgEl.textContent = ""; msgEl.className = "";
+    if (!newPassword) { msgEl.textContent = "Please enter a new password."; msgEl.className = "msg-error"; return; }
+    if (newPassword !== confirmPassword) { msgEl.textContent = "Passwords do not match."; msgEl.className = "msg-error"; return; }
+    btn.textContent = "Updating..."; btn.disabled = true;
+    try {
+      const res  = await fetch(`${API}/profile`, {
+        method:"PUT", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token},
+        body: JSON.stringify({ newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Password updated!", "success");
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+      } else { msgEl.textContent = data.message || "Failed."; msgEl.className = "msg-error"; }
+    } catch { msgEl.textContent = "Server error."; msgEl.className = "msg-error"; }
+    finally { btn.textContent = "Update Password"; btn.disabled = false; }
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>
+```
+
+---
+
+**This is the final version. No more changes needed.**
+
+Place all 5 files in your `frontend/` folder, run `npm install` then `node server.js` and open:
+```
+http://localhost:5000/home.html
