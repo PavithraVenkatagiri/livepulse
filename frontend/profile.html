@@ -83,7 +83,7 @@
   document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") || "dark");
 
   const API = window.location.hostname === "localhost"
-    ? "http://localhost:5000"
+    ? "https://livepulse-9i83.onrender.com"
     : window.location.origin;
 
   function showToast(msg, type="success") {
@@ -171,12 +171,3 @@
 </script>
 </body>
 </html>
-```
-
----
-
-**This is the final version. No more changes needed.**
-
-Place all 5 files in your `frontend/` folder, run `npm install` then `node server.js` and open:
-```
-http://localhost:5000/home.html

@@ -60,4 +60,4 @@ async function pushLiveUpdates() {
 setInterval(pushLiveUpdates, 3 * 60 * 1000);
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 LivePulse running at http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`🚀 LivePulse running at https://livepulse-9i83.onrender.com`));

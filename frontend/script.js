@@ -79,7 +79,7 @@ const LABELS = {
 
 // ── API Base URL (works on localhost AND deployed) ─
 const API = window.location.hostname === "localhost"
-  ? "http://localhost:5000"
+  ? "https://livepulse-9i83.onrender.com"
   : window.location.origin;
 
 // ── Socket.io ─────────────────────────────────
